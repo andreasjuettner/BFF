@@ -5,7 +5,7 @@
 
 ## Requirements:
 
-```Python 3```, ```numpy```, ```h5py```, ```os```, ```scipy```, ```matplotlib```, ```getdist```, ```git```
+```Python 3```, ```numpy```, ```h5py```, ```os```, ```scipy```, ```matplotlib```, ```getdist```, ```gitpython```
 
 ## Introduction:
 This library implements the novel method for fitting form factors presented in the paper
