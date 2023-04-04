@@ -3,6 +3,10 @@
 ## Author:
  - Andreas Juettner    <andreas.juttner@cern.ch>
 
+## Bibliographic reference for this code:
+[![DOI](https://zenodo.org/badge/623083004.svg)](https://zenodo.org/badge/latestdoi/623083004)
+
+
 ## Requirements:
 
 ```Python 3```, ```numpy```, ```h5py```, ```os```, ```scipy```, ```matplotlib```, ```getdist```, ```gitpython```
