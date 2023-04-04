@@ -280,7 +280,7 @@ for combi in variations:
 
  # also create a library of all pdf reports
  if not os.path.exists('Reports'):
-  os.system('mkdir Report')
+  os.system('mkdir Reports')
   print('Created directory Reports')
  os.system('cp Report/BFF_report.pdf Reports/BFF_report_'+sbffl+'.pdf')
  print('Copy of pdf report put into Reports/')
