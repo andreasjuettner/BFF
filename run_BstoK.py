@@ -31,10 +31,6 @@ import numpy as np
 import h5py
 import os
 import os.path
-import scipy
-import scipy.integrate
-import particles as pt
-import matplotlib.pyplot as plt
 
 
 N=2000	 # number of Bayesian inference samples
@@ -126,7 +122,7 @@ input_data = {
 	},
 	'HPQCD 14':
 	{	
-	 'jounral ref': 'Phys.Rev.D 90 (2014) 054506',
+	 'journal': 'Phys.Rev.D 90 (2014) 054506',
  	 'data type':	'BCL',
 	 'label':	'HPQCD 14',
          'Kp':		data.data['HPQCD 14']['Kp'],
@@ -145,7 +141,7 @@ input_data = {
 	},
 	'FNALMILC 19':
 	{	
-	 'jounral ref': 'PHYS. REV. D 100, 034501 (2019)',
+	 'journal': 'PHYS. REV. D 100, 034501 (2019)',
  	 'data type':	'BCL',
 	 'label':	'FNAL\/MILC 19',
          'Kp':		data.data['FNALMILC 19']['Kp'],
@@ -164,7 +160,7 @@ input_data = {
 	},
 	'Khodjamirian 17': # sum-rule data
 	{
-	 'journal ref'	:'JHEP08(2017)112',
+	 'journal'	:'JHEP08(2017)112',
 	 'label'	: 'Khodjamirian 17',
 	 'data type'	: 'ff',
          'Np':		1,
@@ -177,7 +173,7 @@ input_data = {
 	},
 	'Duplancic 08': # sum-rule data
 	{
-	 'journal ref'	:'PRD 78 054015 (2008)',
+	 'journal'	:'PRD 78 054015 (2008)',
 	 'label'	: 'Duplancic 08',
 	 'data type'	: 'ff',
          'Np':		1,
@@ -190,7 +186,7 @@ input_data = {
 	},
 	'Faustov 13': # sum-rule data
 	{
-	 'journal ref'	:'PRD 87 094028 (2013)',
+	 'journal'	:'PRD 87 094028 (2013)',
 	 'label'	: 'Faustov 13',
 	 'data type'	: 'ff',
          'Np':		1,
@@ -203,7 +199,7 @@ input_data = {
 	},
 	'Wang 12': # sum-rule data
 	{
-	 'journal ref'	:'PRD 86 114025 (2012)',
+	 'journal'	:'PRD 86 114025 (2012)',
 	 'label'	: 'Wang 12',
 	 'data type'	: 'ff',
          'Np':		1,
@@ -287,6 +283,9 @@ for combi in variations:
   print('Created directory Report_'+sbffl)
 
  # also create a library of all pdf reports
+ if not os.path.exists('Reports'):
+  os.system('mkdir Report')
+  print('Created directory Reports')
  os.system('cp Report/BFF_report.pdf Reports/BFF_report_'+sbffl+'.pdf')
  print('Copy of pdf report put into Reports/')
  os.system('cp -r Report/* Report_'+sbffl)
