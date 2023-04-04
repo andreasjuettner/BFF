@@ -19,10 +19,6 @@
 #
 # See the full license in the file "LICENSE" in the top level distribution
 # directory
-
-# The code has been used for the analysis presented in
-# "Nonperturbative infrared finiteness in super-renormalisable scalar quantum
-# field theory" https://arxiv.org/abs/2009.14768
 ##############################################################################
 import lib.zfit_lib as zfit_lib
 import lib.physical_constants as pc
