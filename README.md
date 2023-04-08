@@ -29,30 +29,30 @@ To run it:
 
 ## Specifying BGL fit function
 The target BGL fit function needs to be specified in the run script. For the example of a $B_s\to K\ell\nu$ fit
-the example in  `run_BstoK.py` is
+in `run_BstoK.py` this is:
 ```
 input_dict = {
-         'decay':       'BstoK',
-         'Mi':          pc.mBsphys,     # initial-state mass
-         'Mo':          pc.mKphys,      # final-state mass
-         'sigma':       .5,             # sigma for prior in algorithm
-         'Kp':          4,              # target Kp (BGL truncation) - can be changed later
-         'K0':          4,              # target K0 (BGL truncation) - can be changed later
-         'tstar':       '29.349570696829012', # value of t*
-         't0':          'self.tstar - np.sqrt(self.tstar*(self.tstar-self.tm))', # definition of t0
-         'chip':        pc.chip_BstoK,  # susceptibility fp
-         'chi0':        pc.chi0_BstoK,  # susceptibility f0
-         'mpolep':      [pc.mBstar],    # fplus pole
-         'mpole0':      [],             # fzero pole (no pole for BstoK)
-         'N'    :       N,              # number of desired samples
-         'outer_p':     [1,'48*np.pi',3,2], # specs for outer function fp
-         'outer_0':     [1,'16*np.pi/(self.tp*self.tm)',1,1], # specs for outer function f0
-         'seed':        123,            # RNG seed
-         'experimental_input': experimental_input
-        }
+'decay':       'BstoK',
+'Mi':          pc.mBsphys,     # initial-state mass
+'Mo':          pc.mKphys,      # final-state mass
+'sigma':       .5,             # sigma for prior in algorithm
+'Kp':          4,              # target Kp (BGL truncation) - can be changed later
+'K0':          4,              # target K0 (BGL truncation) - can be changed later
+'tstar':       '29.349570696829012', # value of t\*
+'t0':          'self.tstar - np.sqrt(self.tstar\*(self.tstar-self.tm))', # definition of t0
+'chip':        pc.chip_BstoK,  # susceptibility fp
+'chi0':        pc.chi0_BstoK,  # susceptibility f0
+'mpolep':      [pc.mBstar],    # fplus pole
+'mpole0':      [],             # fzero pole (no pole for BstoK)
+'N'    :       N,              # number of desired samples
+'outer_p':     [1,'48\*np.pi',3,2], # specs for outer function fp
+'outer_0':     [1,'16\*np.pi/(self.tp\*self.tm)',1,1], # specs for outer function f0
+'seed':        123,            # RNG seed
+'experimental_input': experimental_input
+}
 ```
 
-Most of the item in this dictionary should be self-explanatory:
+Most of the items in this dictionary should be self-explanatory:
 ```
 Mi              mass of decaying meson in GeV
 Mo              mass of produced meson in GeV
@@ -67,7 +67,7 @@ N               target number of samples
 outer_p/outer_0	[nI,K,a,b] -- see following code block for details
 seed            seed for the random number generator
 ```
-The outer function is defined in `lib/zfit_lib.py` as 
+The format for `outer_p` and `outer_0` becomes clear from the definition of the outer function in `lib/zfit_lib.py` as 
 ```
 def outer_phi_ker(self,qsq,a,b,nI,K,chi):
  rq     = np.sqrt(self.tstar - qsq)
@@ -82,7 +82,7 @@ def outer_phi_ker(self,qsq,a,b,nI,K,chi):
  return res
 ```
 ## Input format:
-All input data is provided in terms of a Python dictionary, one dictionary entry per data set.  Currently the input can be provided in terms of form-factor results at reference $q^2$ values with covariance matrix, or in terms of BCL parameters with covariance matrix. The format is as follows:
+All input data is provided in terms of a Python dictionary, one dictionary entry per data set.  Currently the input can be provided in terms of form-factor results at reference $q^2$ values with covariance matrix (`'data type':'ff'`), or in terms of BCL parameters with covariance matrix (`'data type':'BCL'`). The format is as follows:
 
 - form-factor values available at reference $q^2$ points -- example RBC/UKQCD 23:
 ```
@@ -100,11 +100,11 @@ Cff':       C_RBCUKQCD23,                  # {f+,f0} covariance matrix
 }
 ```
 
-- Input in tersm of BCL fit parameters -- example HPQCD 14. The code creates synthetic reference $q^2$ values for further processing in the fit.
+- Input in terms of BCL fit parameters -- example HPQCD 14. The code creates synthetic reference $q^2$ values for further processing in the fit.
 ```
 'HPQCD 14':
 {    
- 'journal': ' Phys.Rev.D 90 (2014) 054506',       # just for references
+ 'journal': ' Phys.Rev.D 90 (2014) 054506',       # just for internal reference
  'data type': 'BCL',                              # data type BCL    
  'label':    'HPQCD 14',                          # internal label for plots
  'Kp':        data.data['HPQCD 14']['Kp'],        # BCL order for f+
@@ -116,10 +116,9 @@ Cff':       C_RBCUKQCD23,                  # {f+,f0} covariance matrix
                                                   # BCL parameter t0
  'tm':        '(pc.mBsphys-pc.mKphys)**2',        # BCL parameter tm
  'tp':        '(pc.mBsphys+pc.mKphys)**2',        # BCL parameter tp
- 'qsqp':      np.linspace(17,(pc.mBsphys-pc.mKphys)**2,3),#pc.qsqp_ref_BstoK,    
- 'qsq0':      np.linspace(17,(pc.mBsphys-pc.mKphys)**2,3),#pc.qsq0_ref_BstoK,
-                                                  # synthetic data will be generated
-                                                  # for these qsq values
+ 'qsqp':      np.linspace(17,(pc.mBsphys-pc.mKphys)**2,3), # synthetic data will 
+ 'qsq0':      np.linspace(17,(pc.mBsphys-pc.mKphys)**2,3), # be generated for these 
+                                                           #  qsq values
  'bp':        data.data['HPQCD 14']['val'][:data.data['HPQCD 14']['Kp']], # BCL input for f+
  'b0':        data.data['HPQCD 14']['val'][data.data['HPQCD 14']['Kp']:], # BCL input for f0
  'Cp0':       data.data['HPQCD 14']['cov']        # BCL covariance matrix
