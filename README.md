@@ -83,7 +83,7 @@ def outer_phi_ker(self,qsq,a,b,nI,K,chi):
 ## Input format:
 All input data is provided in terms of a Python dictionary, one dictionary entry per data set.  Currently the input can be provided in terms of form-factor results at reference $q^2$ values with covariance matrix, or in terms of BCL parameters with covariance matrix. The format is as follows:
 
--- form-factor values available at reference $q^2$ points -- example RBC/UKQCD 23:
+- form-factor values available at reference $q^2$ points -- example RBC/UKQCD 23:
 	```
 	'RBCUKQCD 23 lat':
 	{
@@ -96,7 +96,7 @@ All input data is provided in terms of a Python dictionary, one dictionary entry
 	 'fp':		ff_RBCUKQCD23[:Np_RBCUKQCD23],  # f+ values
 	 'f0':		ff_RBCUKQCD23[Np_RBCUKQCD23:],  # f0 values`
 	 'Cff':		C_RBCUKQCD23,			# {f+,f0} covariance matrix
-	},
+	}
 	```
 - Input in tersm of BCL fit parameters -- example HPQCD 14. The code creates synthetic reference $q^2$ values for further processing in the fit.
 	```
@@ -121,5 +121,5 @@ All input data is provided in terms of a Python dictionary, one dictionary entry
 	 'bp':		data.data['HPQCD 14']['val'][:data.data['HPQCD 14']['Kp']], # BCL input for f+
 	 'b0':		data.data['HPQCD 14']['val'][data.data['HPQCD 14']['Kp']:], # BCL input for f0
 	 'Cp0':		data.data['HPQCD 14']['cov']				    # BCL covariance matrix
-	},
+	}
 	```
