@@ -57,26 +57,26 @@ Most of the item in this dictionary should be self-explanatory:
 Mi		mass of decaying meson in GeV
 Mo		mass of produced meson in GeV
 sigma		this is the width of the prior required in the algorith, see Sec. 3.2.2 of the paper
-Kp/K0		these are the truncations of the vector and scalar form factor, resepctively
+Kp/K0		these are the truncations of the vector and scalar form factor, respectively
 tstar 		Bpi threshold
 t0		BGL parameter, Eq. (2.5)
 chip/chi0	susceptibilities for vector and scalar channel
 mpolep/mpole0	pole masses for the Blaschke factors
 N		target number of samples
-outer_p/outer_0	[\eta_I,J,K,a,b] -- see following code block for details
+outer_p/outer_0	[nI,K,a,b] -- see following code block for details
 seed		seed for the random number generator
 ```
 The outer function is defined in `lib/zfit_lib.py` as 
 ```
-        def outer_phi_ker(self,qsq,a,b,nI,K,chi):
-         rq     = np.sqrt(self.tstar - qsq)
-         r0     = np.sqrt(self.tstar - self.t0)
-         rm     = np.sqrt(self.tstar - self.tm)
-         res = np.sqrt(nI/K/chi)\
-                * np.sqrt(rq)/np.sqrt(r0)\
-                * (rq           + r0                    )\
-                * (rq           + np.sqrt(self.tstar)   )**(-(b+3))\
-                * (self.tp      - qsq                   )**(a*1./4)\
-                * (rq           + rm                    )**(a*1./2)
-         return res
+def outer_phi_ker(self,qsq,a,b,nI,K,chi):
+ rq     = np.sqrt(self.tstar - qsq)
+ r0     = np.sqrt(self.tstar - self.t0)
+ rm     = np.sqrt(self.tstar - self.tm)
+ res = np.sqrt(nI/K/chi)\
+        * np.sqrt(rq)/np.sqrt(r0)\
+        * (rq           + r0                    )\
+        * (rq           + np.sqrt(self.tstar)   )**(-(b+3))\
+        * (self.tp      - qsq                   )**(a*1./4)\
+        * (rq           + rm                    )**(a*1./2)
+ return res
 ```
