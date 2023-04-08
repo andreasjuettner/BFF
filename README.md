@@ -54,17 +54,18 @@ input_dict = {
 
 Most of the item in this dictionary should be self-explanatory:
 ```
-Mi		mass of decaying meson in GeV
-Mo		mass of produced meson in GeV
-sigma		this is the width of the prior required in the algorith, see Sec. 3.2.2 of the paper
-Kp/K0		these are the truncations of the vector and scalar form factor, respectively
-tstar 		Bpi threshold
-t0		BGL parameter, Eq. (2.5)
-chip/chi0	susceptibilities for vector and scalar channel
-mpolep/mpole0	pole masses for the Blaschke factors
-N		target number of samples
+Mi              mass of decaying meson in GeV
+Mo              mass of produced meson in GeV
+sigma           this is the width of the prior required in the algorith, 
+                see Sec. 3.2.2 of the paper
+Kp/K0           these are the truncations of the vector and scalar form factor, respectively
+tstar           Bpi threshold
+t0              BGL parameter, Eq. (2.5)
+chip/chi0       susceptibilities for vector and scalar channel
+mpolep/mpole0   pole masses for the Blaschke factors
+N               target number of samples
 outer_p/outer_0	[nI,K,a,b] -- see following code block for details
-seed		seed for the random number generator
+seed            seed for the random number generator
 ```
 The outer function is defined in `lib/zfit_lib.py` as 
 ```
@@ -84,42 +85,43 @@ def outer_phi_ker(self,qsq,a,b,nI,K,chi):
 All input data is provided in terms of a Python dictionary, one dictionary entry per data set.  Currently the input can be provided in terms of form-factor results at reference $q^2$ values with covariance matrix, or in terms of BCL parameters with covariance matrix. The format is as follows:
 
 - form-factor values available at reference $q^2$ points -- example RBC/UKQCD 23:
-	```
-	'RBCUKQCD 23 lat':
-	{
- 	 'data type':	'ff',				# type of input
-	 'label'	:'RBC/UKQCD 23',		# label for plots etc.
-         'Np':		Np_RBCUKQCD23,			# number of data points f+
-         'N0':		N0_RBCUKQCD23,			# number of data points f0
-         'qsqp':	pc.qsqp_ref_BstoK[[0,2]],	# f+ qsq reference points
-         'qsq0':	pc.qsq0_ref_BstoK,		# f0 qsq reference points
-	 'fp':		ff_RBCUKQCD23[:Np_RBCUKQCD23],  # f+ values
-	 'f0':		ff_RBCUKQCD23[Np_RBCUKQCD23:],  # f0 values`
-	 'Cff':		C_RBCUKQCD23,			# {f+,f0} covariance matrix
-	}
-	```
+```
+'RBCUKQCD 23 lat':
+{
+'data type':'ff',                          # type of input
+'label':    'RBC/UKQCD 23',                # label for plots etc.
+'Np':       Np_RBCUKQCD23,                 # number of data points f+
+'N0':       N0_RBCUKQCD23,                 # number of data points f0
+'qsqp':	    pc.qsqp_ref_BstoK[[0,2]],      # f+ qsq reference points
+'qsq0':	    pc.qsq0_ref_BstoK,             # f0 qsq reference points
+'fp':       ff_RBCUKQCD23[:Np_RBCUKQCD23], # f+ values
+'f0':       ff_RBCUKQCD23[Np_RBCUKQCD23:], # f0 values`
+Cff':       C_RBCUKQCD23,                  # {f+,f0} covariance matrix
+}
+```
+
 - Input in tersm of BCL fit parameters -- example HPQCD 14. The code creates synthetic reference $q^2$ values for further processing in the fit.
-	```
-	'HPQCD 14':
-	{	
-	 'journal': 'Phys.Rev.D 90 (2014) 054506',		# just for references
- 	 'data type':	'BCL',					# data type BCL	
-	 'label':	'HPQCD 14',				# internal label for plots
-         'Kp':		data.data['HPQCD 14']['Kp'],		# BCL order for f+
-         'K0':		data.data['HPQCD 14']['K0'],		# BCL order for f0
-	 'polep':	[5.32520],				# pole for f+
-	 'pole0':	[5.6794],				# pole for f0
-	 'tstar':	'(pc.mBsphys+pc.mKphys)**2',#'self.tp',	# threshold
-	 't0':		'(pc.mBsphys+pc.mKphys)*(np.sqrt(pc.mBsphys)-np.sqrt(pc.mKphys))**2',
-								# BCL parameter t0
-	 'tm':		'(pc.mBsphys-pc.mKphys)**2',		# BCL parameter tm
-	 'tp':		'(pc.mBsphys+pc.mKphys)**2',		# BCL parameter tp
-         'qsqp':	np.linspace(17,(pc.mBsphys-pc.mKphys)**2,3),#pc.qsqp_ref_BstoK,	
-         'qsq0':	np.linspace(17,(pc.mBsphys-pc.mKphys)**2,3),#pc.qsq0_ref_BstoK,
-								# synthetic data will be generated
-								# for these qsq values
-	 'bp':		data.data['HPQCD 14']['val'][:data.data['HPQCD 14']['Kp']], # BCL input for f+
-	 'b0':		data.data['HPQCD 14']['val'][data.data['HPQCD 14']['Kp']:], # BCL input for f0
-	 'Cp0':		data.data['HPQCD 14']['cov']				    # BCL covariance matrix
-	}
-	```
+```
+'HPQCD 14':
+{    
+ 'journal': ' Phys.Rev.D 90 (2014) 054506',       # just for references
+ 'data type': 'BCL',                              # data type BCL    
+ 'label':    'HPQCD 14',                          # internal label for plots
+ 'Kp':        data.data['HPQCD 14']['Kp'],        # BCL order for f+
+ 'K0':        data.data['HPQCD 14']['K0'],        # BCL order for f0
+ 'polep':     [5.32520],                          # pole for f+
+ 'pole0':     [5.6794],                           # pole for f0
+ 'tstar':     '(pc.mBsphys+pc.mKphys)**2',#'self.tp',    # threshold
+ 't0':        '(pc.mBsphys+pc.mKphys)*(np.sqrt(pc.mBsphys)-np.sqrt(pc.mKphys))**2',
+                                                  # BCL parameter t0
+ 'tm':        '(pc.mBsphys-pc.mKphys)**2',        # BCL parameter tm
+ 'tp':        '(pc.mBsphys+pc.mKphys)**2',        # BCL parameter tp
+ 'qsqp':      np.linspace(17,(pc.mBsphys-pc.mKphys)**2,3),#pc.qsqp_ref_BstoK,    
+ 'qsq0':      np.linspace(17,(pc.mBsphys-pc.mKphys)**2,3),#pc.qsq0_ref_BstoK,
+                                                  # synthetic data will be generated
+                                                  # for these qsq values
+ 'bp':        data.data['HPQCD 14']['val'][:data.data['HPQCD 14']['Kp']], # BCL input for f+
+ 'b0':        data.data['HPQCD 14']['val'][data.data['HPQCD 14']['Kp']:], # BCL input for f0
+ 'Cp0':       data.data['HPQCD 14']['cov']        # BCL covariance matrix
+}
+```
