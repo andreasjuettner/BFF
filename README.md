@@ -33,41 +33,26 @@ in `run_BstoK.py` this is:
 ```
 input_dict = {
 'decay':       'BstoK',
-'Mi':          pc.mBsphys,     # initial-state mass
-'Mo':          pc.mKphys,      # final-state mass
-'sigma':       .5,             # sigma for prior in algorithm
-'Kp':          4,              # target Kp (BGL truncation) - can be changed later
-'K0':          4,              # target K0 (BGL truncation) - can be changed later
-'tstar':       '29.349570696829012', # value of t\*
-'t0':          'self.tstar - np.sqrt(self.tstar\*(self.tstar-self.tm))', # definition of t0
-'chip':        pc.chip_BstoK,  # susceptibility fp
-'chi0':        pc.chi0_BstoK,  # susceptibility f0
-'mpolep':      [pc.mBstar],    # fplus pole
-'mpole0':      [],             # fzero pole (no pole for BstoK)
-'N'    :       N,              # number of desired samples
-'outer_p':     [1,'48\*np.pi',3,2], # specs for outer function fp
-'outer_0':     [1,'16\*np.pi/(self.tp\*self.tm)',1,1], # specs for outer function f0
-'seed':        123,            # RNG seed
+'Mi':          # initial-state mass in GeV (float)
+'Mo':          # final-state mass in GeV (float)
+'sigma':       # sigma for prior in algorithm  (float)
+'Kp':          # target Kp (BGL truncation) - can be changed later (int)
+'K0':          # target K0 (BGL truncation) - can be changed later (int)
+'tstar':       '29.349570696829012', # string, will be evaluated with Python's eval
+'t0':          'self.tstar - np.sqrt(self.tstar\*(self.tstar-self.tm))', 
+                                     # string, will be evaluated with Python's eval
+'chip':        # susceptibility fp (float)
+'chi0':        # susceptibility f0 (float)
+'mpolep':      [pole1,pole2,...], # list of pole positions in GeV
+'mpole0':      [],                # list of pole positions in GeV
+'N'    :       # number of desired samples (int)
+'outer_p':     [nI,K,a,b], # specs for outer function fp, K is string, e.g. '48\*np.pi'
+'outer_0':     [nI,K,a,b], # specs for outer function f0, K is string 
+'seed':        # RNG seed
 'experimental_input': experimental_input
 }
 ```
-
-Most of the items in this dictionary should be self-explanatory:
-```
-Mi              mass of decaying meson in GeV
-Mo              mass of produced meson in GeV
-sigma           this is the width of the prior required in the algorith, 
-                see Sec. 3.2.2 of the paper
-Kp/K0           these are the truncations of the vector and scalar form factor, respectively
-tstar           Bpi threshold
-t0              BGL parameter, Eq. (2.5)
-chip/chi0       susceptibilities for vector and scalar channel
-mpolep/mpole0   pole masses for the Blaschke factors
-N               target number of samples
-outer_p/outer_0	[nI,K,a,b] -- see following code block for details
-seed            seed for the random number generator
-```
-The format for `outer_p` and `outer_0` becomes clear from the definition of the outer function in `lib/zfit_lib.py` as 
+The format `[nI,K,a,b]` for `outer_p` and `outer_0` becomes clear from the definition of the outer function in `lib/zfit_lib.py` as 
 ```
 def outer_phi_ker(self,qsq,a,b,nI,K,chi):
  rq     = np.sqrt(self.tstar - qsq)
@@ -88,15 +73,15 @@ All input data is provided in terms of a Python dictionary, one dictionary entry
 ```
 'RBCUKQCD 23 lat':
 {
-'data type':'ff',                          # type of input
-'label':    'RBC/UKQCD 23',                # label for plots etc.
-'Np':       Np_RBCUKQCD23,                 # number of data points f+
-'N0':       N0_RBCUKQCD23,                 # number of data points f0
-'qsqp':	    pc.qsqp_ref_BstoK[[0,2]],      # f+ qsq reference points
-'qsq0':	    pc.qsq0_ref_BstoK,             # f0 qsq reference points
-'fp':       ff_RBCUKQCD23[:Np_RBCUKQCD23], # f+ values
-'f0':       ff_RBCUKQCD23[Np_RBCUKQCD23:], # f0 values`
-Cff':       C_RBCUKQCD23,                  # {f+,f0} covariance matrix
+'data type':'ff', # type of input
+'label':          # label for plots etc. (string)
+'Np':             # number of data points f+ (int)
+'N0':             # number of data points f0 (int)
+'qsqp':	          # f+ qsq reference points (numpy array)
+'qsq0':	          # f0 qsq reference points (numpy array)
+'fp':             # f+ values (numpy array)
+'f0':             # f0 values`(numpy array)
+Cff':             # {f+,f0} covariance matrix (numpy array)
 }
 ```
 
@@ -106,21 +91,19 @@ Cff':       C_RBCUKQCD23,                  # {f+,f0} covariance matrix
 {    
  'journal': ' Phys.Rev.D 90 (2014) 054506',       # just for internal reference
  'data type': 'BCL',                              # data type BCL    
- 'label':    'HPQCD 14',                          # internal label for plots
- 'Kp':        data.data['HPQCD 14']['Kp'],        # BCL order for f+
- 'K0':        data.data['HPQCD 14']['K0'],        # BCL order for f0
- 'polep':     [5.32520],                          # pole for f+
- 'pole0':     [5.6794],                           # pole for f0
- 'tstar':     '(pc.mBsphys+pc.mKphys)**2',#'self.tp',    # threshold
- 't0':        '(pc.mBsphys+pc.mKphys)*(np.sqrt(pc.mBsphys)-np.sqrt(pc.mKphys))**2',
-                                                  # BCL parameter t0
- 'tm':        '(pc.mBsphys-pc.mKphys)**2',        # BCL parameter tm
- 'tp':        '(pc.mBsphys+pc.mKphys)**2',        # BCL parameter tp
- 'qsqp':      np.linspace(17,(pc.mBsphys-pc.mKphys)**2,3), # synthetic data will 
- 'qsq0':      np.linspace(17,(pc.mBsphys-pc.mKphys)**2,3), # be generated for these 
-                                                           #  qsq values
- 'bp':        data.data['HPQCD 14']['val'][:data.data['HPQCD 14']['Kp']], # BCL input for f+
- 'b0':        data.data['HPQCD 14']['val'][data.data['HPQCD 14']['Kp']:], # BCL input for f0
- 'Cp0':       data.data['HPQCD 14']['cov']        # BCL covariance matrix
+ 'label':     # internal label for plots (string)
+ 'Kp':        # BCL order for f+ (int)
+ 'K0':        # BCL order for f0 (int)
+ 'polep':     # pole for f+ (list of floats)
+ 'pole0':     # pole for f0 (list of floats)
+ 'tstar':     # threshold, string, will be evaluated with eval
+ 't0':        # BCL parameter t0, string, will be evaluated with eval
+ 'tm':        # BCL parameter tm, string, will be evaluated with eval
+ 'tp':        # BCL parameter tp, string, will be evaluated with eval
+ 'qsqp':      # synthetic data for f+ will be generated for these qsq values (numpy array)
+ 'qsq0':      # synthetic data for f0 will be generated for these qsq values (numpy array)
+ 'bp':        # BCL parameters for f+ (numpy array)
+ 'b0':        # BCL parameters for f0 (numpy array)
+ 'Cp0':       # covariance matrix for BCL (numpy array)
 }
 ```
