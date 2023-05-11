@@ -17,6 +17,13 @@ by J.M. Flynn, A. Jüttner and J.T. Tsang.
 
 Abstract: We propose a model-independent framework for fitting hadronic form-factor data, which is often only available at discrete kinematical points, using parameterisation based on to unitarity and analyticity. In this novel approach the latter two properties of quantum-field theory regulate the ill-posed fitting problem and allow model-independent predictions over the entire physical range. Kinematical constraints, for example for the vector and scalar form factors in semileptonic meson decays, can be imposed exactly. The  core formulae are straight-forward to implement with standard math libraries. We take account of a generalisation of the original Boyd~Grinstein~Lebed (BGL) unitarity constraint for form factors and demonstrate our method for the exclusive semileptonic decay $B_s\to K \ell \nu$, for which we make a number of phenomenologically relevant predictions, including  the CKM matrix element $|V_{ub}|$.
  
+## Installation
+The BFF library depends on the submodule particles (helper class for resampling).
+
+In order to correctly install BFF including the submodule please run
+
+git clone --recurse-submodules https://github.com/andreasjuettner/BFF.git
+
 ## Execution
 The following example script reproduces the results presented in the paper. Upon execution 
 Bayesian inference is run for various combinations of lattice and sum-rule input and for
