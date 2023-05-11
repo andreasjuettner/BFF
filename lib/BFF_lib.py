@@ -30,7 +30,7 @@ import getdist
 from getdist import plots
 import os
 import git
-import particles as pt
+import particles.particles as pt
 import h5py
 ###############################################################################
 # Some plot settings
