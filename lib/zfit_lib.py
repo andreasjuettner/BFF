@@ -143,19 +143,25 @@ class zfit_ff():
 		
         ################################################################
 	def outer_phi_p(self,qsq):
-	 nI 	= self.outer_p[0]
-	 K	= eval(self.outer_p[1])
-	 a	= self.outer_p[2]
-	 b	= self.outer_p[3]
-	 return self.outer_phi_ker(qsq,a,b,nI,K,self.chip)
+	 if self.outer_p[0]==0:
+	  nI 	= self.outer_p[0]
+	  K	= eval(self.outer_p[1])
+	  a	= self.outer_p[2]
+	  b	= self.outer_p[3]
+	  return self.outer_phi_ker(qsq,a,b,nI,K,self.chip)
+	 else:
+	  return 1.  
 	
         ################################################################
 	def outer_phi_0(self,qsq):
-	 nI 	= self.outer_0[0]
-	 K	= eval(self.outer_0[1])
-	 a	= self.outer_0[2]
-	 b	= self.outer_0[3]
-	 return self.outer_phi_ker(qsq,a,b,nI,K,self.chi0)
+	 if self.outer_0[0]==0:
+	  nI 	= self.outer_0[0]
+	  K	= eval(self.outer_0[1])
+	  a	= self.outer_0[2]
+	  b	= self.outer_0[3]
+	  return self.outer_phi_ker(qsq,a,b,nI,K,self.chi0)
+	 else:
+	  return 1.
 	
         ################################################################
 	def outer_phi_ker(self,qsq,a,b,nI,K,chi):
