@@ -80,7 +80,7 @@ class Bff():
 	 self.report	= {}		# report will contain all sort of generated data
 	 self.triangle	= 1		# set to one if triangle-correlation plots to be generated
 
-	
+	 self.plot_qsqval=[]	
 	 self.legendfontsize = 10
 	 
 	 # create directories for report if needed
@@ -175,7 +175,10 @@ class Bff():
 	   results and the global block-diagonal covariance matrix
 	 """
 	 # determine overall size
-	 self.Z	= np.empty((0,self.Kp+self.K0-1),dtype='float')
+	 if self.K0>0:
+	  self.Z	= np.empty((0,self.Kp+self.K0-1),dtype='float')
+	 else:
+	  self.Z	= np.empty((0,self.Kp),dtype='float')
 	 self.y	= []
 	 self.Cf= np.empty((0,0),dtype='float')
 
@@ -183,12 +186,15 @@ class Bff():
 	 # for each case and combined into block-diagonal form
 	 for datl in self.data:	
 	  Xpp = self.ff.zfit_BGL_p_fn([],datl['qsqp']   )
-	  X00 = self.ff.zfit_BGL_0_fn([],datl['qsq0'],f0_constraint=True)
-	  X0p = self.ff.zfit_BGL_p_fn([],datl['qsq0'],f0_constraint=True)
-	  Xp0 = np.zeros((len(datl['qsqp']),self.K0-1))
-	  X0  = np.r_['1',Xpp,Xp0]
-	  X1  = np.r_['1',X0p,X00]
-	  self.Z   = np.r_['0',self.Z,np.r_['0',X0,X1]]
+	  if self.K0>0:
+	   X00 = self.ff.zfit_BGL_0_fn([],datl['qsq0'],f0_constraint=True)
+	   X0p = self.ff.zfit_BGL_p_fn([],datl['qsq0'],f0_constraint=True)
+	   Xp0 = np.zeros((len(datl['qsqp']),self.K0-1))
+	   X0  = np.r_['1',Xpp,Xp0]
+	   X1  = np.r_['1',X0p,X00]
+	   self.Z   = np.r_['0',self.Z,np.r_['0',X0,X1]]
+	  else:
+	   self.Z   = np.r_['0',self.Z,Xpp]
 
 	  # self.y holds form-factor input data	  
 	  self.y   = np.r_[self.y,datl['fp'],datl['f0']]
@@ -229,29 +235,32 @@ class Bff():
 	  z0p		= np.array([[z**i*z**j for i in range(1,K0)] for j in range(Kp)] )
 
 	  Mp 		= self.make_zizj(self.Kp  ,self.angle)
-	  M0		= self.make_zizj(self.K0  ,self.angle)
-	  M00		= M0[0,0]
-	  M0i		= M0[0,:]
-	  M0bar		= M0[1:,1:]
+	  if self.K0==0: # if only one form factor
+	   M=		Mp
+	  else:
+	   M0		= self.make_zizj(self.K0  ,self.angle)
+	   M00		= M0[0,0]
+	   M0i		= M0[0,:]
+	   M0bar		= M0[1:,1:]
 	
-	  K1		= +  Pratio**2 * M00 * zpp
-	  K2		= -  Pratio    * M00 * z0p
-	  K3		= -  Pratio    * M00 * zp0
-	  K4		= +              M00 * z00
-	  K5 		= +  Pratio    * np.array([[M0i[i]*z**j for i in range(1,K0)] for j in range(Kp)] )
-	  K6 		= +  Pratio    * np.array([[M0i[i]*z**j for i in range(1,K0)] for j in range(Kp)] ).T
-	  K7		= -              np.array([[M0i[i]*z**j for i in range(1,K0)] for j in range(1,K0)] ) 
-	  K8		= -              np.array([[M0i[i]*z**j for i in range(1,K0)] for j in range(1,K0)] ).T
-	  M		= scipy.linalg.block_diag(Mp,M0bar)
-	  if 2==2:
-	   M[:Kp,:Kp]	+=  K1
-	   M[:Kp,Kp:]	+=  K2
-	   M[Kp:,:Kp]	+=  K3
-	   M[Kp:,Kp:]	+=  K4
-	   M[:Kp,Kp:]	+=  K5
-	   M[Kp:,:Kp]	+=  K6
-	   M[Kp:,Kp:]	+=  K7
-	   M[Kp:,Kp:]	+=  K8
+	   K1		= +  Pratio**2 * M00 * zpp
+	   K2		= -  Pratio    * M00 * z0p
+	   K3		= -  Pratio    * M00 * zp0
+	   K4		= +              M00 * z00
+	   K5 		= +  Pratio    * np.array([[M0i[i]*z**j for i in range(1,K0)] for j in range(Kp)] )
+	   K6 		= +  Pratio    * np.array([[M0i[i]*z**j for i in range(1,K0)] for j in range(Kp)] ).T
+	   K7		= -              np.array([[M0i[i]*z**j for i in range(1,K0)] for j in range(1,K0)] ) 
+	   K8		= -              np.array([[M0i[i]*z**j for i in range(1,K0)] for j in range(1,K0)] ).T
+	   M		= scipy.linalg.block_diag(Mp,M0bar)
+	   if 2==2:
+	    M[:Kp,:Kp]	+=  K1
+	    M[:Kp,Kp:]	+=  K2
+	    M[Kp:,:Kp]	+=  K3
+	    M[Kp:,Kp:]	+=  K4
+	    M[:Kp,Kp:]	+=  K5
+	    M[Kp:,:Kp]	+=  K6
+	    M[Kp:,Kp:]	+=  K7
+	    M[Kp:,Kp:]	+=  K8
 	  return M
 
         ################################################################
@@ -272,6 +281,7 @@ class Bff():
 	 self.ff.Kp	= self.Kp
 	 self.ff.K0	= self.K0
 	 # compute angle = arg[z(t+;t*,t0)] (see Sec. 2.2. of the fitting paper
+	 print(self.ff.zfn(self.tp,self.tstar,self.t0,epsilon=0j))
 	 self.angle	= np.angle(self.ff.zfn(self.tp,self.tstar,self.t0,epsilon=0j))
 	 print('Angle on unit arc in z-plane: %.4f'%self.angle)
 
@@ -287,22 +297,28 @@ class Bff():
 	  print('Condition number of metric close-to-singular: %.2e'%cond)
 	  print('Consider being more modest in your choice of Kp and K0')
 	  exit()
-	 # repeat for M0
-	 M0 		= self.make_zizj(self.K0  ,self.angle)
-	 M0_red 	= np.delete(np.delete(M0,0,0),0,1)
-	 M		= scipy.linalg.block_diag(Mp,M0)
-	 cond 		= np.linalg.cond(M0)
-	 cond_red	= np.linalg.cond(M0_red)
-	 if (cond>1e7) or (cond_red>1e7):
-	  print('Condition number of metric close-to-singular: %.2e'%cond,cond_red)
-	  print('Consider being more modest in your choice of Kp and K0')
-	  exit()
+	 if self.K0>0:
+	  # repeat for M0
+	  M0 		= self.make_zizj(self.K0  ,self.angle)
+	  M0_red 	= np.delete(np.delete(M0,0,0),0,1)
+	  M		= scipy.linalg.block_diag(Mp,M0)
+	  cond 		= np.linalg.cond(M0)
+	  cond_red	= np.linalg.cond(M0_red)
+	  if cond>1e7:
+	   print('Condition number of metric close-to-singular: %.2e'%cond,cond_red)
+	   print('Consider being more modest in your choice of Kp and K0')
+	   exit()
+	 else:
+	  M		= Mp
 
 	 # initailise design matrix Z (see Sec. 3.1 of fitting paper)
 	 self.make_design_matrix()
 
 	 # get started with Bayesian inference
-	 a0             = np.array([0.]*(self.Kp+self.K0-1))
+	 if self.K0>0:
+	  a0             = np.array([0.]*(self.Kp+self.K0-1))
+	 else:
+	  a0             = np.array([0.]*(self.Kp))
 	 # this is the metric for the Bayesian prior
 	 invCa		= bigM/self.sigma**2
 	 # construct (3.18) and (3.19) of fitting paper
@@ -315,25 +331,35 @@ class Bff():
 	 print('Now doing (Kp,K0)=(%d,%d)'%(self.Kp,self.K0))
 
 	 # if Ndof>=1 do frequentist fit
-	 if self.Cf.shape[0]>self.Kp+self.K0-1:
+	 if self.K0>0:
+	   self.Ndof	= len(self.y)-self.Kp-self.K0+1
+	 else:
+	   self.Ndof	= len(self.y)-self.Kp
+
+	 if self.Ndof>0:
 	  print(self.separator)
 	  print('Freuqentist fit possible:')
+	  print(invtildeCy0)
 	  self.cov_frequ= np.linalg.inv(invtildeCy0)
 	  self.y_frequ	= self.cov_frequ@dum
 	  self.dy_frequ	= np.sqrt(np.diag(self.cov_frequ))
 	  # compute chisq
 	  delta		= (self.Z@self.y_frequ-self.y)
 	  self.chisq	= delta@invCy@delta
-	  self.Ndof	= len(self.y)-self.Kp-self.K0+1
+
 	  self.pval	= self.mkchisqval(self.chisq,self.Ndof)
 	  self.frequ_cases.append([self.Kp,self.K0])
 	  print('Frequentist: chisq=%.2f, Ndof=%d, pval=%.2f%%'%(self.chisq/self.Ndof,self.Ndof,self.pval*100))
 
 	  # reconstruct 0-component of a_0
-	  a00           = np.array([self.ff.make_b0_BGL(self.y_frequ)])
-	  da00		= self.dfunc(self.ff.make_b0_BGL,self.y_frequ,self.cov_frequ,[1])
-	  y_frequ0	= np.r_[ self.y_frequ[:self.Kp],a00 , self.y_frequ[self.Kp:]]
-	  d_frequ0	= np.r_[self.dy_frequ[:self.Kp],da00,self.dy_frequ[self.Kp:]]
+	  if self.K0>0:
+	   a00           = np.array([self.ff.make_b0_BGL(self.y_frequ)])
+	   da00		= self.dfunc(self.ff.make_b0_BGL,self.y_frequ,self.cov_frequ,[1])
+	   y_frequ0	= np.r_[ self.y_frequ[:self.Kp],a00 , self.y_frequ[self.Kp:]]
+	   d_frequ0	= np.r_[self.dy_frequ[:self.Kp],da00,self.dy_frequ[self.Kp:]]
+	  else:
+	   y_frequ0	=  self.y_frequ[:self.Kp]
+	   d_frequ0	= self.dy_frequ[:self.Kp]
 	  print('Frequentist - BGL parameters:')
 	  print(' '.join(self.disperr(y_frequ0,d_frequ0)))
 	  print(self.separator)
@@ -370,20 +396,31 @@ class Bff():
 	  ap             = np.r_['1',samples0[:,:self.Kp]]
 	  # impose unitarity constraint
 	  norm_ap 	= np.sum(np.multiply(ap.T,Mp@ap.T).T,1)
-	  norm_a0 	= np.sum(np.multiply(a0.T,M0@a0.T).T,1)
-	  ind           = np.where(( norm_ap <= 1 ) & ( norm_a0 <= 1 ))[0]
-	  # purge results not compatible with unitarity cosntraint
-	  samples0      = np.r_['1',ap,a0][ind,:]
+	  if self.K0>0:
+	   norm_a0 	= np.sum(np.multiply(a0.T,M0@a0.T).T,1)
+	   ind           = np.where(( norm_ap <= 1 ) & ( norm_a0 <= 1 ))[0]
+	   # purge results not compatible with unitarity cosntraint
+	   samples0      = np.r_['1',ap,a0][ind,:]
+	  else:
+	   ind           = np.where(( norm_ap <= 1 ))[0]
+	   # purge results not compatible with unitarity cosntraint
+	   samples0      = np.r_['1',ap][ind,:]
 	  s = 'unitarity constraint efficiency\t: %5.2f%%'%(len(ind)/ap.shape[0]*100)
 
  	  # accept/reject step to correct towards flat prior
-	  a0_red	= np.delete(a0,0,1)
-	  samples_red 	= np.delete(samples0,self.Kp,1)
-	  normterm	= np.sum(np.multiply(samples_red.T,bigM@samples_red.T).T,1)
 	  Ns             = samples0.shape[0]
-	  c              = np.exp(-0.5*(       2.0/self.sigma**2) )
-	  priorterm      = c/(np.exp(-0.5*(normterm/self.sigma**2)))
-	  self.normterm_samples.append(np.max(normterm))
+	  if self.K0>0:
+	   a0_red	= np.delete(a0,0,1)
+	   samples_red 	= np.delete(samples0,self.Kp,1)
+	   normterm	= np.sum(np.multiply(samples_red.T,bigM@samples_red.T).T,1)
+	   c              = np.exp(-0.5*(       2.0/self.sigma**2) )
+	   priorterm      = c/(np.exp(-0.5*(normterm/self.sigma**2)))
+	   self.normterm_samples.append(np.max(normterm))
+	  else:
+	   normterm	= np.sum(np.multiply(samples0.T,bigM@samples0.T).T,1)
+	   c            = np.exp(-0.5*(       1.0/self.sigma**2) )
+	   priorterm    = c/(np.exp(-0.5*(normterm/self.sigma**2)))
+	   self.normterm_samples.append(np.max(normterm))
 
 	  if (priorterm > 1).any(): # sanity check -- exit of accept/reject-step normalisation violated
 				    # this should really never happen	
@@ -485,24 +522,28 @@ class Bff():
 		[('$f_0(q^2) {\\rm %s}$'%ii).replace(' ','\,').replace(' lat','') for ii in self.labels],
 		prop={'family':'serif','size':self.legendfontsize}, frameon=False)
 	 # Now plot BGL parameterisation with error bands
-	 qsq 		= np.linspace(0,self.tm,100)
+	 if self.plot_qsqval == []:
+	  qsq 		= np.linspace(0,self.tm,100)
+	 else:
+	  qsq		= self.plot_qsqval
 	 fp 		= self.ff.zfit_BGL_p_fn(self.val[:self.Kp],qsq)
-	 f0 		= self.ff.zfit_BGL_0_fn(self.val[self.Kp:],qsq)	
 	 ffp_lambda 	= lambda a:self.ff.zfit_BGL_p_fn(a,qsq)
-	 ff0_lambda 	= lambda a:self.ff.zfit_BGL_0_fn(a,qsq)
 	 fp_pre,_,_ 	= self.ff.zfit_BGL_p_pole(qsq)
-	 f0_pre,_,_ 	= self.ff.zfit_BGL_0_pole(qsq)	
 	 dfp 		= self.dfunc(ffp_lambda,self.val[:self.Kp],self.covariance[:self.Kp,:self.Kp],qsq)
-	 df0 		= self.dfunc(ff0_lambda,self.val[self.Kp:],self.covariance[self.Kp:,self.Kp:],qsq)
 	 z  		= self.ff.zfn(qsq,self.tstar,self.t0)
 	 ax[0].plot(qsq,fp,'b-')
-	 ax[0].plot(qsq,f0,'r-')
 	 ax[1].plot(z,fp/fp_pre*fp_pre0,'b-')
-	 ax[1].plot(z,f0/f0_pre*f0_pre0,'r-')
 	 ax[0].fill_between(qsq,fp+dfp,fp-dfp,color='b',alpha=.2 )
-	 ax[0].fill_between(qsq,f0+df0,f0-df0,color='r',alpha=.2 )
 	 ax[1].fill_between(z,(fp+dfp)/fp_pre*fp_pre0,(fp-dfp)/fp_pre*fp_pre0,color='b',alpha=.2 )
-	 ax[1].fill_between(z,(f0+df0)/f0_pre*f0_pre0,(f0-df0)/f0_pre*f0_pre0,color='r',alpha=.2 )
+	 if self.K0>0:
+	  f0 		= self.ff.zfit_BGL_0_fn(self.val[self.Kp:],qsq)	
+	  ff0_lambda 	= lambda a:self.ff.zfit_BGL_0_fn(a,qsq)
+	  f0_pre,_,_ 	= self.ff.zfit_BGL_0_pole(qsq)	
+	  df0 		= self.dfunc(ff0_lambda,self.val[self.Kp:],self.covariance[self.Kp:,self.Kp:],qsq)
+	  ax[0].plot(qsq,f0,'r-')
+	  ax[1].plot(z,f0/f0_pre*f0_pre0,'r-')
+	  ax[0].fill_between(qsq,f0+df0,f0-df0,color='r',alpha=.2 )
+	  ax[1].fill_between(z,(f0+df0)/f0_pre*f0_pre0,(f0-df0)/f0_pre*f0_pre0,color='r',alpha=.2 )
 
 
 	 # wrap things up and save to disk
@@ -767,21 +808,24 @@ class Bff():
 	  f.write('\\begin{center}')
 	  f.write('\\tiny')
 	  f.write('\input{tables/BFF_frequ_fits_p.txt}\n')
-	  f.write('\input{tables/BFF_frequ_fits_0.txt}\n')
+	  if self.K0>0:
+	   f.write('\input{tables/BFF_frequ_fits_0.txt}\n')
 	  f.write('\end{center}')
 	  #
 	  f.write('\subsection{BGL coefficients}\n')
 	  f.write('\\begin{center}')
 	  f.write('\\tiny')
 	  f.write('\input{tables//BFF_fits_p.txt}\n')
-	  f.write('\input{tables//BFF_fits_0.txt}\n')
+	  if self.K0>0:
+	   f.write('\input{tables//BFF_fits_0.txt}\n')
 	  f.write('\end{center}\n')
 	  #
 	  f.write('\subsection{BGL coefficients -- rotated}\n')
 	  f.write('\\begin{center}')
 	  f.write('\\tiny')
 	  f.write('\input{tables//BFF_fits_p_rotated.txt}\n')
-	  f.write('\input{tables//BFF_fits_0_rotated.txt}\n')
+	  if self.K0>0:
+	   f.write('\input{tables//BFF_fits_0_rotated.txt}\n')
 	  f.write('\end{center}\n')
 	  #
 	  f.write('\subsection{Form-factor plots}\n')

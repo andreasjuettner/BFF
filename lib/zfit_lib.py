@@ -143,7 +143,7 @@ class zfit_ff():
 		
         ################################################################
 	def outer_phi_p(self,qsq):
-	 if self.outer_p[0]==0:
+	 if self.outer_p[0]!=0:
 	  nI 	= self.outer_p[0]
 	  K	= eval(self.outer_p[1])
 	  a	= self.outer_p[2]
@@ -154,7 +154,7 @@ class zfit_ff():
 	
         ################################################################
 	def outer_phi_0(self,qsq):
-	 if self.outer_0[0]==0:
+	 if self.outer_0[0]!=0:
 	  nI 	= self.outer_0[0]
 	  K	= eval(self.outer_0[1])
 	  a	= self.outer_0[2]
