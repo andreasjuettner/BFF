@@ -100,6 +100,11 @@ class Bff():
 	 print('Starting BFF')
 	 print('Target statistics is %d'%(self.N))
 	 print(self.longseparator)
+	 print('Doing BGL fits with large_t_constraint=%d'%large_t)
+	 if large_t!=False:
+	  print('large_t_ibase=%d'%(large_t_ibase))
+	 print(self.longseparator)
+
 
         ################################################################
 	def add_data(self,data_dict,tag):
@@ -863,7 +868,15 @@ class Bff():
 	   f.write('\input{tables//BFF_fits_0_rotated.txt}\n')
 	  f.write('\end{center}\n')
 	  #
-	  f.write('\subsection{Form-factor plots}\n')
+	  if self.report_observables:
+	   f.write('\subsection{Observables}\n')
+	   f.write('\\begin{center}\n')
+	   f.write('\\tiny')
+	   f.write('\input{tables//BFF_observables.txt}\n')
+	   f.write('\input{tables//BFF_observables2.txt}\n')
+	   f.write('\end{center}\n')
+	   f.write('\subsection{Form-factor plots}\n')
+	  #
 	  for cases in self.Kcases:
 	   f.write('\subsubsection{$(K_+,K_0)$=(%d,%d)}\n'%(cases[0],cases[1]))
 	   f.write('\\begin{center}\n')

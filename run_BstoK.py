@@ -20,7 +20,8 @@
 # See the full license in the file "LICENSE" in the top level distribution
 # directory
 ##############################################################################
-import lib.BFF_lib as Bff
+#import lib.BFF_lib as Bff
+import lib.BFF_pheno_lib as Bff
 import lib.physical_constants as pc
 import lib.data_BstoK as data
 import numpy as np
@@ -239,7 +240,7 @@ Klist		= [	[2,2,0.52,1.],
 for combi in variations:
 
  # instantiate BFF library
- bff 			= Bff.Bff(input_dict,large_t=True,large_t_ibase = 1)
+ bff 		= Bff.Bff_pheno(input_dict,large_t=True,large_t_ibase = 1)
  bff.add_HMChPT	= 0 # we don't want to plot overlay HMChPT results
 
  # now add all input for current variation 'combi'
@@ -263,7 +264,10 @@ for combi in variations:
   samples 	= bff.run_BFF()
 
   # generate plots
+  bff.make_observables(bff.samples)
   bff.make_plots()
+  bff.make_pheno_plots()
+  bff.make_pheno_tables()
 
  # After having looped through all (Kp,K0) cases all results are still
  # stored in memory. We can now proceed to write the executive report:
