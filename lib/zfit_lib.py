@@ -30,7 +30,11 @@ class zfit_ff():
 	'''
 	 This class contains basic definitions for BGL and BCL parameterisations
 	'''
-	def __init__(self,input_dict):
+	def __init__(self,input_dict,large_t=False,large_t_ibase=0):
+	 '''
+	   input_dict	specifies zfit details in terms of dict
+	  
+	 '''
 	 for k,v in input_dict.items():
 	  setattr(self,k,v) 
 	 self.tp	= (self.Mi+self.Mo)**2
@@ -39,7 +43,24 @@ class zfit_ff():
 	 self.t0      	= eval(input_dict['t0'])
 	
 	 self.data 	= []
+	 self.large_t	= large_t	# constrain large-t systematics?
+	 self.large_t_ibase = large_t_ibase
+
         ################################################################
+	def rho(self,k,j,wo):
+	 '''
+	  constraint for the large-t behaviour, such that f\lesssim t^-1
+	 '''
+	 if wo==0:
+	  return -0.5*((2+3*j+j**2) - (3+2*j)*k + k**2)
+	 elif wo==1:
+   	  return      ((  2*j+j**2) - (2+2*j)*k + k**2)
+	 elif wo==2:
+	  return -0.5*((    j+j**2) - (1+2*j)*k + k**2)
+	 else:
+	  print("zfit.rho: value j=%d not defined"%j)
+	  exit()
+
 	def zfit_BGL_p_pole(self,qsql):
 	 B	= 1.
 	 for pole in self.mpolep:
@@ -68,13 +89,27 @@ class zfit_ff():
 	  phi00  = self.outer_phi_0(qsq*0)
 	  prefac = B00*phi00/(B0*phi0)/(B*phi)
 
+	 if self.large_t:
+	  base_i  = self.large_t_ibase
+	  RHO     = lambda k: z**k \
+			+ self.rho(k,base_i,0)*z**(base_i+0) \
+			+ self.rho(k,base_i,1)*z**(base_i+1) \
+			+ self.rho(k,base_i,2)*z**(base_i+2)
+	  indices = range(self.Kp+3)
+	  indices = np.delete(indices,base_i + np.array([0,1,2]))
+	  aind 	  = lambda k: k if k<base_i else k-3 if k>=base_i+3 else 0
+	 else:
+	  indices = range(self.Kp)
+	  RHO     = lambda k: z**k
+	  aind    = lambda k: k 
+         
 	 if alpha==[]:
-	  return (prefac*np.array([z**k for k in range(self.Kp)])).T
+ 	  return (prefac*np.array([RHO(k) for k in indices])).T
 	 else:
 	  if len(alpha.shape)==2:
-	   return (np.sum(prefac*np.array([alpha[:,k]*z**k for k in range(self.Kp)]),axis=0)).T
+	   return (np.sum(prefac*np.array([alpha[:,aind(k)]*RHO(k) for k in indices]),axis=0)).T
 	  else:
-	   return (np.sum(prefac*np.array([alpha[k]*z**k for k in range(self.Kp)]),axis=0))
+	   return (np.sum(prefac*np.array([alpha[aind(k)]*RHO(k) for k in indices]),axis=0))
 	
         ################################################################
 	def zfit_BGL_0_pole(self,qsql):

@@ -218,6 +218,7 @@ variations 	=  [    ['RBCUKQCD 23 lat'],
 			['HPQCD 14'],
 			['RBCUKQCD 23 lat','HPQCD 14'],
 			['RBCUKQCD 23 lat','HPQCD 14','FNALMILC 19']]
+variations 	=  [    ['RBCUKQCD 23 lat']]
 # choose which (Kp,K0) variations you wish to evaluate. The format is
 # [Kp,K0,sigma], where sigma may have to be tuned for good
 # Monte-Carlo acceptance rate
@@ -229,16 +230,16 @@ Klist		= [	[2,2,0.52,1.],
 		   	[4,3,.52,1.],
 			[4,4,.52,1.], 
 			[5,5,.5,1.0],
-			[6,6,.5,1.5],
-			[7,7,.65,1.0],
-			[8,8,.6,1.0],
-			[9,9,.42,1.],
-			[10,10,.32,1.]]
+			[6,6,.5,1.5]]
+#			[7,7,.65,1.0],
+#			[8,8,.6,1.0],
+#			[9,9,.42,1.],
+#			[10,10,.32,1.]]
 # Let's get started
 for combi in variations:
 
  # instantiate BFF library
- bff 		= Bff.Bff(input_dict)
+ bff 			= Bff.Bff(input_dict,large_t=True,large_t_ibase = 1)
  bff.add_HMChPT	= 0 # we don't want to plot overlay HMChPT results
 
  # now add all input for current variation 'combi'

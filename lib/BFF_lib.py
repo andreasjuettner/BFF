@@ -50,7 +50,7 @@ plt.rcParams['ytick.left']  = plt.rcParams['ytick.labelleft'] = True
 ###############################################################################
 class Bff():
         ################################################################
-	def __init__(self,input_dict):
+	def __init__(self,input_dict,large_t=False,large_t_ibase=0):
 	 # input_dict contains parameters for target BGL function
 	 # assign parameters to class-internal variables
 	 for k,v in input_dict.items():
@@ -69,7 +69,9 @@ class Bff():
 	 # data is a list that will hold all data sets that will enter the fit
 	 self.data 	= []
 	 # instantiate the zfit library, which contains functions specific to BGL and BCL fits
-	 self.ff	= zfit_lib.zfit_ff(input_dict) # instantiate ff library
+	 self.large_t	= large_t
+	 self.large_t_ibase = large_t_ibase
+	 self.ff	= zfit_lib.zfit_ff(input_dict,large_t=large_t,large_t_ibase=large_t_ibase) # instantiate ff library
 	 # MISC initiatlisations	 
 	 self.tags	= []		# tags identifying the input data sets
 	 self.labels	= []		# labels for data sets to be used in legends
@@ -206,7 +208,7 @@ class Bff():
 	  self.Cf  = scipy.linalg.block_diag(self.Cf,datl['Cff'])
 
         ################################################################
-	def make_zizj(self,K,alpha):
+	def make_zizj(self,K,alpha,large_t_constraint=False):
 	  """ 
 	   Compute the <z^i|z^j> (Eq. (2.9) of fitting paper)
 	  """ 
@@ -215,40 +217,64 @@ class Bff():
 	    return alpha/np.pi
 	   else:
 	    return np.sin(alpha*(i-j))/(np.pi*(i-j))
-	  M = np.array([[res(i,j) for i in range(K)] for j in range(K)])
+
+	  if large_t_constraint:	
+	   os 		= self.large_t_ibase
+	   indices 	= range(K+3) # sum not over os,os+1,os+2
+	   indices 	= np.delete(indices,os + np.array([0,1,2]))
+	   rho 		= lambda k,jj: self.ff.rho(k,os,jj)
+	   rhozz 	= lambda k,l: sum([rho(k,i)*res(os+i,l) for i in range(3)])
+	   rhozzrho	= lambda k,l: sum([rhozz(k,os+i)*rho(l,i) for i in range(3)])
+	   M 		= np.array([[res(i,j) + rhozz(i,j) + rhozz(j,i) + rhozzrho(i,j) 
+						for i in indices] for j in indices])
+	  else:
+	   M = np.array([[res(i,j) for i in range(K)] for j in range(K)])
 	  return M
 
         ################################################################
-	def make_M(self,Kp,K0,alpha):
+	def make_M(self,Kp,K0,alpha,large_t_constraint=False):
 	  """
 	   This function returns the metric M for the Bayesian prior 
 	   (cf. App. D of fitting paper)	
 	  """
-	  fp_pre0,_,_    = self.ff.zfit_BGL_p_pole(0)
+	  fp_pre0,_,_   = self.ff.zfit_BGL_p_pole(0)
 	  f0_pre0,_,_ 	= self.ff.zfit_BGL_0_pole(0)	
 	  Pratio 	= fp_pre0/f0_pre0
 
 	  z		= self.ff.zfn(0,self.tstar,self.t0)
-	  zpp		= np.array([[z**i*z**j for i in range(Kp)] for j in range(Kp)] )
-	  z00		= np.array([[z**i*z**j for i in range(1,K0)] for j in range(1,K0)] )
-	  zp0		= np.array([[z**i*z**j for i in range(Kp)] for j in range(1,K0)] )
-	  z0p		= np.array([[z**i*z**j for i in range(1,K0)] for j in range(Kp)] )
 
-	  Mp 		= self.make_zizj(self.Kp  ,self.angle)
+	  if large_t_constraint:
+	   base_i  	= self.large_t_ibase
+	   RHO     	= lambda k: z**k \
+			+ self.ff.rho(k,base_i,0)*z**(base_i+0) \
+			+ self.ff.rho(k,base_i,1)*z**(base_i+1) \
+			+ self.ff.rho(k,base_i,2)*z**(base_i+2)
+	   Kpindices	= range(self.Kp+3)
+	   Kpindices 	= np.delete(Kpindices,base_i+np.array([0,1,2]))
+	  else:	
+	   Kpindices	= range(self.Kp)
+	   RHO		= lambda k: z**k 
+
+	  zpp		= np.array([[RHO(i)*RHO(j) for i in Kpindices  ] for j in Kpindices  ])
+	  z00		= np.array([[z**i  *z**j   for i in range(1,K0)] for j in range(1,K0)])
+	  zp0		= np.array([[RHO(i)*z**j   for i in Kpindices  ] for j in range(1,K0)])
+	  z0p		= np.array([[z**i  *RHO(j) for i in range(1,K0)] for j in Kpindices  ])
+
+	  Mp 		= self.make_zizj(self.Kp  ,self.angle,large_t_constraint=self.large_t)
 	  if self.K0==0: # if only one form factor
 	   M=		Mp
 	  else:
 	   M0		= self.make_zizj(self.K0  ,self.angle)
 	   M00		= M0[0,0]
 	   M0i		= M0[0,:]
-	   M0bar		= M0[1:,1:]
+	   M0bar	= M0[1:,1:]
 	
 	   K1		= +  Pratio**2 * M00 * zpp
 	   K2		= -  Pratio    * M00 * z0p
 	   K3		= -  Pratio    * M00 * zp0
 	   K4		= +              M00 * z00
-	   K5 		= +  Pratio    * np.array([[M0i[i]*z**j for i in range(1,K0)] for j in range(Kp)] )
-	   K6 		= +  Pratio    * np.array([[M0i[i]*z**j for i in range(1,K0)] for j in range(Kp)] ).T
+	   K5 		= +  Pratio    * np.array([[M0i[i]*RHO(j) for i in range(1,K0)] for j in Kpindices] )
+	   K6 		= +  Pratio    * np.array([[M0i[i]*RHO(j) for i in range(1,K0)] for j in Kpindices] ).T
 	   K7		= -              np.array([[M0i[i]*z**j for i in range(1,K0)] for j in range(1,K0)] ) 
 	   K8		= -              np.array([[M0i[i]*z**j for i in range(1,K0)] for j in range(1,K0)] ).T
 	   M		= scipy.linalg.block_diag(Mp,M0bar)
@@ -287,9 +313,9 @@ class Bff():
 
 
 	 # initialise the Metric for the Bayesian prior
-	 bigM		= self.make_M(self.Kp,self.K0,self.angle)
+	 bigM		= self.make_M(self.Kp,self.K0,self.angle,large_t_constraint=self.large_t)
 	 # initialise the matrix Mp_ij=<z^i|z^j> for the unitarity constraint
-	 Mp 		= self.make_zizj(self.Kp  ,self.angle)
+	 Mp 		= self.make_zizj(self.Kp     ,self.angle,large_t_constraint=self.large_t)
 	 # compute the condition number of Mp	
 	 # (check that Kp small enough such that condition number of Mp acceptable)
 	 cond 		= np.linalg.cond(Mp)
@@ -392,45 +418,54 @@ class Bff():
 	  total_drawn	 +=N
 	  # reconstruct a_0,0
 	  a00            = np.array([self.ff.make_b0_BGL(samples0)])
-	  a0             = np.r_['1',a00.T,samples0[:,self.Kp:]]
-	  ap             = np.r_['1',samples0[:,:self.Kp]]
+	  a0             = np.r_['1',a00.T,samples0[:, self.Kp:]]
+	  ap             = np.r_['1',	   samples0[:,:self.Kp]]
 	  # impose unitarity constraint
-	  norm_ap 	= np.sum(np.multiply(ap.T,Mp@ap.T).T,1)
-	  if self.K0>0:
-	   norm_a0 	= np.sum(np.multiply(a0.T,M0@a0.T).T,1)
-	   ind           = np.where(( norm_ap <= 1 ) & ( norm_a0 <= 1 ))[0]
-	   # purge results not compatible with unitarity cosntraint
-	   samples0      = np.r_['1',ap,a0][ind,:]
-	  else:
-	   ind           = np.where(( norm_ap <= 1 ))[0]
-	   # purge results not compatible with unitarity cosntraint
-	   samples0      = np.r_['1',ap][ind,:]
-	  s = 'unitarity constraint efficiency\t: %5.2f%%'%(len(ind)/ap.shape[0]*100)
+	  if 2==2:
+	   norm_ap 	 = np.sum(np.multiply(ap.T,Mp@ap.T).T,1)
+	   if self.K0>0:
+	    norm_a0 	  = np.sum(np.multiply(a0.T,M0@a0.T).T,1)
+	    ind           = np.where(( norm_ap <= 1 ) & ( norm_a0 <= 1 ))[0]
+	    # purge results not compatible with unitarity cosntraint
+	    samples0      = np.r_['1',ap,a0][ind,:]
+	   else:
+	    ind           = np.where(( norm_ap <= 1 ))[0]
+	    # purge results not compatible with unitarity cosntraint
+	    samples0      = np.r_['1',ap][ind,:]
+	   s = 'unitarity constraint efficiency\t: %5.2f%%'%(len(ind)/ap.shape[0]*100)
 
- 	  # accept/reject step to correct towards flat prior
-	  Ns             = samples0.shape[0]
-	  if self.K0>0:
-	   a0_red	= np.delete(a0,0,1)
-	   samples_red 	= np.delete(samples0,self.Kp,1)
-	   normterm	= np.sum(np.multiply(samples_red.T,bigM@samples_red.T).T,1)
-	   c              = np.exp(-0.5*(       2.0/self.sigma**2) )
-	   priorterm      = c/(np.exp(-0.5*(normterm/self.sigma**2)))
-	   self.normterm_samples.append(np.max(normterm))
-	  else:
-	   normterm	= np.sum(np.multiply(samples0.T,bigM@samples0.T).T,1)
-	   c            = np.exp(-0.5*(       1.0/self.sigma**2) )
-	   priorterm    = c/(np.exp(-0.5*(normterm/self.sigma**2)))
-	   self.normterm_samples.append(np.max(normterm))
+ 	   # accept/reject step to correct towards flat prior
+	   Ns             = samples0.shape[0]
+	   if self.K0>0:
+	    #a0_red		= np.delete(a0,0,1)
+	    samples_red 	= np.delete(samples0,self.Kp,1)
+	    normterm		= np.sum(np.multiply(samples_red.T,bigM@samples_red.T).T,1)
+	    c              	=    np.exp(-0.5*(     2.0/self.sigma**2) )
+	    priorterm      	= c/(np.exp(-0.5*(normterm/self.sigma**2)))
+	    self.normterm_samples.append(np.max(normterm))
+	   else:
+	    normterm		= np.sum(np.multiply(samples0.T,bigM@samples0.T).T,1)
+	    c            	=    np.exp(-0.5*(     1.0/self.sigma**2) )
+	    print(normterm-norm_ap[ind]-norm_a0[ind])
+	    print(norm_ap[ind])
+	    print(norm_a0[ind])
+	    priorterm    	= c/(np.exp(-0.5*(normterm/self.sigma**2)))
+	    self.normterm_samples.append(np.max(normterm))
 
-	  if (priorterm > 1).any(): # sanity check -- exit of accept/reject-step normalisation violated
-				    # this should really never happen	
-	   print('priorterm not correctly normalised',min(priorterm),max(priorterm),max(normterm))
-	   exit()
-	  # draw flat random number
-	  r              = np.random.rand(Ns)
-	  # accept/reject with probability priorterm
-	  ind            = np.where(r<=priorterm)[0]
-	  tmp   	 = samples0[ind,:]
+	   if (priorterm > 1).any(): # sanity check -- exit of accept/reject-step normalisation violated
+	         		    # this should really never happen	
+	    print('priorterm not correctly normalised',min(priorterm),max(priorterm),max(normterm))
+	    print('max(|ap|)=%f'%(np.max(norm_ap[ind]+norm_ap[ind])))
+	    exit()
+	   # draw flat random number
+	   r              = np.random.rand(Ns)
+	   # accept/reject with probability priorterm
+	   ind            = np.where(r<=priorterm)[0]
+	   tmp   	 = samples0[ind,:]
+	  else:
+	   s = 'fit without unitarity constraint'
+	   samples0      = np.r_['1',ap,a0]
+	   tmp 		 = samples0
 	  # accumulated samples	
 	  samples	 = np.r_['0',samples,tmp]
 	  length	 = samples.shape[0]
