@@ -330,6 +330,9 @@ class Bff_pheno(Bff.Bff):
 	  f.write('hash of last BFF commit: '+sha)
 	  #
 	  f.write('\section{$z$-fit setup}\n')
+	  f.write('\\verb|%-20s|: %s\\\\\n' % ('large_t',str(self.large_t)))
+	  f.write('\\verb|%-20s|: %s\\\\\n' % ('large_t_ibase',str(self.large_t_ibase)))
+	  f.write('\\verb|%-20s|: %s\\\\\n' % ('alpha',str(self.angle)))
 	  for key, value in self.input_dict.items(): 
 	   f.write('\\verb|%-20s|: %s\\\\\n' % (key, value))
 	  #

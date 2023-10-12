@@ -430,7 +430,8 @@ class Bff():
 	   norm_ap 	 = np.sum(np.multiply(ap.T,Mp@ap.T).T,1)
 	   if self.K0>0:
 	    norm_a0 	  = np.sum(np.multiply(a0.T,M0@a0.T).T,1)
-	    ind           = np.where(( norm_ap <= 1 ) & ( norm_a0 <= 1 ))[0]
+	    u_constraint  = 1
+	    ind           = np.where(( norm_ap <= u_constraint ) & ( norm_a0 <= u_constraint ))[0]
 	    # purge results not compatible with unitarity cosntraint
 	    samples0      = np.r_['1',ap,a0][ind,:]
 	   else:
@@ -445,12 +446,12 @@ class Bff():
 	    #a0_red		= np.delete(a0,0,1)
 	    samples_red 	= np.delete(samples0,self.Kp,1)
 	    normterm		= np.sum(np.multiply(samples_red.T,bigM@samples_red.T).T,1)
-	    c              	=    np.exp(-0.5*(     2.0/self.sigma**2) )
+	    c              	=    np.exp(-0.5*(     2*u_constraint/self.sigma**2) )
 	    priorterm      	= c/(np.exp(-0.5*(normterm/self.sigma**2)))
 	    self.normterm_samples.append(np.max(normterm))
 	   else:
 	    normterm		= np.sum(np.multiply(samples0.T,bigM@samples0.T).T,1)
-	    c            	=    np.exp(-0.5*(     1.0/self.sigma**2) )
+	    c            	=    np.exp(-0.5*(     u_constraint/self.sigma**2) )
 	    print(normterm-norm_ap[ind]-norm_a0[ind])
 	    print(norm_ap[ind])
 	    print(norm_a0[ind])

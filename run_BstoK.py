@@ -240,7 +240,7 @@ Klist		= [	[2,2,0.52,1.],
 for combi in variations:
 
  # instantiate BFF library
- bff 		= Bff.Bff_pheno(input_dict,large_t=True,large_t_ibase = 1)
+ bff 		= Bff.Bff_pheno(input_dict,large_t=False,large_t_ibase = 1)
  bff.add_HMChPT	= 0 # we don't want to plot overlay HMChPT results
 
  # now add all input for current variation 'combi'
@@ -262,7 +262,6 @@ for combi in variations:
 
   # do the job
   samples 	= bff.run_BFF()
-
   # generate plots
   bff.make_observables(bff.samples)
   bff.make_plots()

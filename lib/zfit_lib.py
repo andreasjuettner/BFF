@@ -132,7 +132,7 @@ class zfit_ff():
 	  r 	= np.arange(1,self.K0)
 	  B0	= 1.
 	  for pole in self.mpole0:
-	   B0*= self.zfn(qsq*0.,tstar,pole**2)
+	   B0*= self.zfn(qsq*0.,self.tstar,pole**2)
 	  prefac0 = 1./B0/phi0
 	  res = (prefac*(np.array([z**k for k in r])-np.array([z0**k for k in r]))).T
 	 else:
